@@ -20,7 +20,7 @@ spec:
         - containerPort: 80
         volumeMounts:
         - name: filestore-volume
-          mountPath: /usr/share/nginx/html
+          mountPath: /data
       - name: writer
         image: busybox
         command: ["/bin/sh"]

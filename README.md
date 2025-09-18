@@ -30,21 +30,24 @@ This demo creates:
 
 ```
 .
-├── provider.tf              # Terraform and provider configuration
-├── vpc.tf                   # VPC and networking resources
-├── gke.tf                   # GKE cluster configuration
-├── filestore.tf             # Filestore instance and StorageClass
-├── variables.tf             # Input variables
-├── outputs.tf               # Output values
-├── terraform.tfvars.example # Example variables file
+├── provider.tf                  # Terraform and provider configuration
+├── vpc.tf                       # VPC and networking resources
+├── gke.tf                       # GKE cluster configuration
+├── filestore.tf                 # Filestore instance and StorageClass
+├── variables.tf                 # Input variables
+├── outputs.tf                   # Output values
+├── terraform.tfvars.example     # Example variables file
+├── STORAGE_TESTING_GUIDE.md     # Comprehensive storage testing guide
 ├── k8s-manifests/
-│   ├── static-pv-example.yaml    # Static PV/PVC example
-│   ├── dynamic-pvc-example.yaml  # Dynamic PVC example
-│   ├── test-deployment.yaml      # Multi-pod deployment
-│   └── statefulset-example.yaml  # StatefulSet with shared storage
+│   ├── static-pv-example.yaml       # Static PV/PVC example
+│   ├── dynamic-pvc-example.yaml     # Dynamic PVC example
+│   ├── test-deployment.yaml         # Multi-pod deployment
+│   ├── statefulset-example.yaml     # StatefulSet with shared storage
+│   └── storage-test-job.yaml        # Job to generate 10GB test data
 └── scripts/
-    ├── deploy.sh            # Automated deployment script
-    └── cleanup.sh           # Resource cleanup script
+    ├── deploy.sh                # Automated deployment script
+    ├── cleanup.sh               # Resource cleanup script
+    └── test-storage.sh          # Storage testing script (generates 10GB data)
 ```
 
 ## File Descriptions
@@ -64,6 +67,11 @@ This demo creates:
 - **dynamic-pvc-example.yaml**: Dynamic volume provisioning using StorageClass
 - **test-deployment.yaml**: Multi-replica deployment sharing storage
 - **statefulset-example.yaml**: StatefulSet with both shared and pod-specific storage
+- **storage-test-job.yaml**: Kubernetes Job to generate 10GB of test data
+
+### Documentation
+
+- **STORAGE_TESTING_GUIDE.md**: Comprehensive guide for storage testing, data generation, and verification
 
 ## Quick Start
 
@@ -77,8 +85,8 @@ cp terraform.tfvars.example terraform.tfvars
 Edit `terraform.tfvars` with your project details:
 ```hcl
 project_id = "your-gcp-project-id"
-region     = "us-central1"
-zone       = "us-central1-a"
+region     = "us-west1"      # Default region
+zone       = "us-west1-a"    # Default zone
 ```
 
 ### 2. Deploy Infrastructure
@@ -104,9 +112,11 @@ Or use the automated deployment script:
 After deployment, configure kubectl access:
 ```bash
 gcloud container clusters get-credentials filestore-demo-cluster \
-  --region us-central1 \
+  --zone us-west1-a \
   --project your-gcp-project-id
 ```
+
+Note: Use `--zone` instead of `--region` since we're deploying a zonal cluster.
 
 ### 4. Deploy Test Applications
 
@@ -115,8 +125,8 @@ gcloud container clusters get-credentials filestore-demo-cluster \
 # Get Filestore IP from Terraform output
 FILESTORE_IP=$(terraform output -raw filestore_ip_address)
 
-# Update the PV manifest with actual IP
-sed -i "s/FILESTORE_IP_ADDRESS/$FILESTORE_IP/g" k8s-manifests/static-pv-example.yaml
+# The PV manifest already has the IP configured, but you can verify/update it:
+# sed -i "s/10.98.117.18/$FILESTORE_IP/g" k8s-manifests/static-pv-example.yaml
 
 # Apply manifests
 kubectl apply -f k8s-manifests/static-pv-example.yaml
@@ -166,6 +176,24 @@ kubectl get svc filestore-test-service
 
 ## Testing Scenarios
 
+### Quick Storage Test (Generate 10GB Test Data)
+
+Run the automated storage test to generate 10GB of test data and verify multi-pod access:
+
+```bash
+./scripts/test-storage.sh
+```
+
+This will:
+- Generate 10 x 1GB files using `dd` command
+- Create metadata and summary files
+- Deploy multiple pods to verify shared access
+- Show storage usage and file listings
+
+For detailed testing instructions, see: **[📖 STORAGE_TESTING_GUIDE.md](STORAGE_TESTING_GUIDE.md)**
+
+### Additional Testing Scenarios
+
 ### 1. Multi-Pod Read/Write
 Deploy the test deployment to verify multiple pods can read/write simultaneously:
 ```bash
@@ -180,11 +208,16 @@ kubectl apply -f k8s-manifests/statefulset-example.yaml
 kubectl exec filestore-statefulset-0 -- cat /data/shared/startup-log.txt
 ```
 
-### 3. Performance Testing
-Run FIO benchmark:
+### 3. Interactive Data Creation
 ```bash
-kubectl run fio-test --image=ljishen/fio --rm -it --restart=Never -- \
-  fio --name=test --size=1G --filename=/data/test --rw=randrw --direct=1
+# Connect to a pod and create test files
+kubectl exec -it storage-reader -- sh
+
+# Create a 5GB file
+dd if=/dev/zero of=/data/large-file.dat bs=1M count=5120
+
+# Verify from another pod
+kubectl exec deployment/filestore-test-app -- ls -lh /data/
 ```
 
 ## Monitoring
@@ -192,7 +225,7 @@ kubectl run fio-test --image=ljishen/fio --rm -it --restart=Never -- \
 ### View Filestore Metrics
 ```bash
 gcloud filestore instances describe filestore-demo-cluster-filestore \
-  --location=us-central1-a \
+  --location=us-west1-a \
   --format="table(name,tier,fileShares[0].name,fileShares[0].capacityGb,state)"
 ```
 

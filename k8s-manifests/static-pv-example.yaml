@@ -11,7 +11,7 @@ spec:
   storageClassName: ""
   csi:
     driver: filestore.csi.storage.gke.io
-    volumeHandle: "modeInstance/us-central1-a/filestore-demo-cluster-filestore/nfsshare"
+    volumeHandle: "modeInstance/us-west1-a/filestore-demo-cluster-filestore/nfsshare"
     volumeAttributes:
       ip: "10.98.117.18"
       volume: "nfsshare"
