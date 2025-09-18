@@ -18,8 +18,8 @@ if [ -z "$1" ]; then
 fi
 
 PROJECT_ID=$1
-REGION=${2:-us-central1}
-ZONE=${3:-us-central1-a}
+REGION=${2:-us-west1}
+ZONE=${3:-us-west1-a}
 
 echo "Project ID: $PROJECT_ID"
 echo "Region: $REGION"

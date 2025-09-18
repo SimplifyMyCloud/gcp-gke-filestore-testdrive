@@ -26,6 +26,16 @@ resource "google_compute_subnetwork" "subnet" {
   description = "Subnet for GKE cluster nodes with secondary ranges for pods and services"
 }
 
+resource "google_compute_global_address" "service_networking_range" {
+  name          = "${var.cluster_name}-service-networking"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  prefix_length = 24
+  network       = google_compute_network.vpc.id
+
+  description = "IP address range for private service connection"
+}
+
 resource "google_compute_global_address" "filestore_range" {
   name          = "${var.cluster_name}-filestore-range"
   purpose       = "VPC_PEERING"
@@ -39,5 +49,5 @@ resource "google_compute_global_address" "filestore_range" {
 resource "google_service_networking_connection" "private_vpc_connection" {
   network                 = google_compute_network.vpc.id
   service                 = "servicenetworking.googleapis.com"
-  reserved_peering_ranges = [google_compute_global_address.filestore_range.name]
+  reserved_peering_ranges = [google_compute_global_address.service_networking_range.name]
 }

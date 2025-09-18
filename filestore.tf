@@ -18,7 +18,7 @@ resource "google_filestore_instance" "instance" {
     network           = google_compute_network.vpc.name
     modes             = ["MODE_IPV4"]
     connect_mode      = "DIRECT_PEERING"
-    reserved_ip_range = google_compute_global_address.filestore_range.address
+    reserved_ip_range = "${google_compute_global_address.filestore_range.address}/${google_compute_global_address.filestore_range.prefix_length}"
   }
 
   description = "Filestore instance for persistent storage in GKE cluster"
@@ -44,7 +44,7 @@ resource "kubernetes_storage_class" "filestore" {
   parameters = {
     tier               = var.filestore_tier
     network            = google_compute_network.vpc.name
-    reserved-ipv4-cidr = google_compute_global_address.filestore_range.address
+    reserved-ipv4-cidr = "${google_compute_global_address.filestore_range.address}/${google_compute_global_address.filestore_range.prefix_length}"
   }
 
   depends_on = [

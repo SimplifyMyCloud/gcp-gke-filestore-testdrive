@@ -82,10 +82,20 @@ resource "google_project_iam_member" "workload_identity_user" {
   project = var.project_id
   role    = "roles/iam.workloadIdentityUser"
   member  = "serviceAccount:${var.project_id}.svc.id.goog[default/filestore-app]"
+
+  depends_on = [
+    google_container_cluster.primary,
+    google_container_node_pool.primary_nodes
+  ]
 }
 
 resource "google_service_account_iam_member" "workload_identity_binding" {
   service_account_id = google_service_account.workload_identity.name
   role               = "roles/iam.workloadIdentityUser"
   member             = "serviceAccount:${var.project_id}.svc.id.goog[default/filestore-app]"
+
+  depends_on = [
+    google_container_cluster.primary,
+    google_container_node_pool.primary_nodes
+  ]
 }
