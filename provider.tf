@@ -18,10 +18,22 @@ provider "google" {
   region  = var.region
 }
 
+# Kubernetes provider for Cluster 1
 provider "kubernetes" {
-  host                   = "https://${google_container_cluster.primary.endpoint}"
+  alias = "cluster1"
+
+  host                   = "https://${google_container_cluster.cluster1.endpoint}"
   token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(google_container_cluster.primary.master_auth[0].cluster_ca_certificate)
+  cluster_ca_certificate = base64decode(google_container_cluster.cluster1.master_auth[0].cluster_ca_certificate)
+}
+
+# Kubernetes provider for Cluster 2
+provider "kubernetes" {
+  alias = "cluster2"
+
+  host                   = "https://${google_container_cluster.cluster2.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(google_container_cluster.cluster2.master_auth[0].cluster_ca_certificate)
 }
 
 data "google_client_config" "default" {}
