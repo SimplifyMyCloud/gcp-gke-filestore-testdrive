@@ -35,6 +35,12 @@ resource "google_container_cluster" "cluster1" {
   }
 
   description = "GKE Cluster 1 in zone ${var.cluster1_zone} with Filestore CSI driver"
+
+  timeouts {
+    create = "45m"
+    update = "45m"
+    delete = "30m"
+  }
 }
 
 # Node Pool for Cluster 1
@@ -77,6 +83,12 @@ resource "google_container_node_pool" "cluster1_nodes" {
     auto_repair  = true
     auto_upgrade = true
   }
+
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "20m"
+  }
 }
 
 # GKE Cluster 2 - Zone: us-west1-b
@@ -116,6 +128,12 @@ resource "google_container_cluster" "cluster2" {
   }
 
   description = "GKE Cluster 2 in zone ${var.cluster2_zone} with Filestore CSI driver"
+
+  timeouts {
+    create = "45m"
+    update = "45m"
+    delete = "30m"
+  }
 }
 
 # Node Pool for Cluster 2
@@ -157,6 +175,12 @@ resource "google_container_node_pool" "cluster2_nodes" {
   management {
     auto_repair  = true
     auto_upgrade = true
+  }
+
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "20m"
   }
 }
 

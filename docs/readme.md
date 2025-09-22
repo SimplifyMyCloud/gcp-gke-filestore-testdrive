@@ -37,7 +37,7 @@ This demo creates:
 ├── variables.tf                 # Input variables
 ├── outputs.tf                   # Output values
 ├── terraform.tfvars.example     # Example variables file
-├── STORAGE_TESTING_GUIDE.md     # Comprehensive storage testing guide
+├── docs/storage-testing-guide.md     # Comprehensive storage testing guide
 ├── k8s-manifests/
 │   ├── static-pv-example.yaml       # Static PV/PVC example
 │   ├── dynamic-pvc-example.yaml     # Dynamic PVC example
@@ -71,7 +71,7 @@ This demo creates:
 
 ### Documentation
 
-- **STORAGE_TESTING_GUIDE.md**: Comprehensive guide for storage testing, data generation, and verification
+- **docs/storage-testing-guide.md**: Comprehensive guide for storage testing, data generation, and verification
 
 ## Quick Start
 
@@ -190,7 +190,7 @@ This will:
 - Deploy multiple pods to verify shared access
 - Show storage usage and file listings
 
-For detailed testing instructions, see: **[📖 STORAGE_TESTING_GUIDE.md](STORAGE_TESTING_GUIDE.md)**
+For detailed testing instructions, see: **[📖 storage-testing-guide.md](docs/storage-testing-guide.md)**
 
 ### Additional Testing Scenarios
 

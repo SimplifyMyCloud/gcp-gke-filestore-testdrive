@@ -4,27 +4,10 @@ resource "google_filestore_instance" "enterprise_shared" {
   location = var.region  # Regional for Enterprise tier
   tier     = var.filestore_tier
 
-  # Multiple file shares - Enterprise tier supports this
+  # Single file share - Filestore only supports one file_shares block
   file_shares {
     capacity_gb = var.filestore_capacity_gb
     name        = var.filestore_share_name
-
-    nfs_export_options {
-      ip_ranges   = [
-        var.cluster1_subnet_cidr,
-        var.cluster2_subnet_cidr,
-        var.pods_cidr_cluster1,
-        var.pods_cidr_cluster2
-      ]
-      access_mode = "READ_WRITE"
-      squash_mode = "NO_ROOT_SQUASH"
-    }
-  }
-
-  # Second share for cluster-specific data (optional)
-  file_shares {
-    capacity_gb = 512  # Smaller share for cluster-specific data
-    name        = var.filestore_share2_name
 
     nfs_export_options {
       ip_ranges   = [
@@ -56,6 +39,12 @@ resource "google_filestore_instance" "enterprise_shared" {
   depends_on = [
     google_service_networking_connection.private_vpc_connection
   ]
+
+  timeouts {
+    create = "45m"
+    update = "45m"
+    delete = "30m"
+  }
 }
 
 # Static PV for Cluster 1 - Main Share
@@ -94,6 +83,10 @@ resource "kubernetes_persistent_volume" "cluster1_pv_main" {
     google_container_node_pool.cluster1_nodes,
     google_filestore_instance.enterprise_shared
   ]
+
+  timeouts {
+    create = "30m"
+  }
 }
 
 # Static PV for Cluster 2 - Main Share
@@ -132,9 +125,16 @@ resource "kubernetes_persistent_volume" "cluster2_pv_main" {
     google_container_node_pool.cluster2_nodes,
     google_filestore_instance.enterprise_shared
   ]
+
+  timeouts {
+    create = "30m"
+  }
 }
 
 # PVC for Cluster 1
+# NOTE: If Terraform times out, run ./create-pvcs.sh to create these manually
+# Uncomment below to manage PVCs with Terraform
+/*
 resource "kubernetes_persistent_volume_claim" "cluster1_pvc" {
   provider = kubernetes.cluster1
 
@@ -154,6 +154,10 @@ resource "kubernetes_persistent_volume_claim" "cluster1_pvc" {
 
     storage_class_name = ""
     volume_name        = kubernetes_persistent_volume.cluster1_pv_main.metadata[0].name
+  }
+
+  timeouts {
+    create = "20m"
   }
 }
 
@@ -178,4 +182,9 @@ resource "kubernetes_persistent_volume_claim" "cluster2_pvc" {
     storage_class_name = ""
     volume_name        = kubernetes_persistent_volume.cluster2_pv_main.metadata[0].name
   }
+
+  timeouts {
+    create = "20m"
+  }
 }
+*/

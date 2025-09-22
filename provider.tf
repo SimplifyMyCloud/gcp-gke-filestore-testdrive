@@ -16,6 +16,13 @@ terraform {
 provider "google" {
   project = var.project_id
   region  = var.region
+
+  # Extended timeouts for API operations
+  request_timeout = "60s"
+
+  batching {
+    enable_batching = false  # Disable batching to avoid timeout issues
+  }
 }
 
 # Kubernetes provider for Cluster 1

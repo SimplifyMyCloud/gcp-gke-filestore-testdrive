@@ -48,10 +48,6 @@ output "filestore_share1_name" {
   description = "Primary Filestore share name"
 }
 
-output "filestore_share2_name" {
-  value       = google_filestore_instance.enterprise_shared.file_shares[1].name
-  description = "Secondary Filestore share name"
-}
 
 output "filestore_tier" {
   value       = google_filestore_instance.enterprise_shared.tier

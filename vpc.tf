@@ -65,7 +65,7 @@ resource "google_compute_global_address" "filestore_range" {
   name          = "enterprise-filestore-range"
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
-  prefix_length = 29
+  prefix_length = 26
   network       = google_compute_network.shared_vpc.id
 
   description = "IP address range for Enterprise Filestore instance"
@@ -76,6 +76,12 @@ resource "google_service_networking_connection" "private_vpc_connection" {
   network                 = google_compute_network.shared_vpc.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.service_networking_range.name]
+
+  timeouts {
+    create = "30m"
+    update = "30m"
+    delete = "30m"
+  }
 }
 
 # Firewall rule to allow internal communication between clusters
