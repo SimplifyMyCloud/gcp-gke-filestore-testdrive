@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "Bash(terraform state:*)",
+      "Bash(terraform:*)",
+      "Bash(gcloud filestore instances list:*)",
+      "Bash(awk:*)",
+      "Bash(gcloud container clusters get-credentials:*)",
+      "Bash(kubectl get:*)",
+      "Bash(./quick-test.sh:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

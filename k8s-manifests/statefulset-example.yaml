@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: filestore-statefulset
+  namespace: default
+spec:
+  serviceName: filestore-statefulset
+  replicas: 3
+  selector:
+    matchLabels:
+      app: filestore-stateful
+  template:
+    metadata:
+      labels:
+        app: filestore-stateful
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command:
+        - sh
+        - -c
+        - |
+          echo "Pod $(hostname) started at $(date)" >> /data/shared/startup-log.txt
+          while true; do
+            echo "Pod $(hostname) alive at $(date)" >> /data/pod-specific/heartbeat.txt
+            sleep 60
+          done
+        volumeMounts:
+        - name: shared-storage
+          mountPath: /data/shared
+        - name: pod-storage
+          mountPath: /data/pod-specific
+      volumes:
+      - name: shared-storage
+        persistentVolumeClaim:
+          claimName: filestore-pvc
+  volumeClaimTemplates:
+  - metadata:
+      name: pod-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: standard-rwo
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: filestore-statefulset
+  namespace: default
+spec:
+  clusterIP: None
+  selector:
+    app: filestore-stateful
+  ports:
+  - port: 80
+    targetPort: 80

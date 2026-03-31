@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filestore-test-app
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: filestore-test
+  template:
+    metadata:
+      labels:
+        app: filestore-test
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: filestore-volume
+          mountPath: /data
+      - name: writer
+        image: busybox
+        command: ["/bin/sh"]
+        args:
+        - -c
+        - |
+          while true; do
+            echo "Written at $(date)" >> /data/test-file.txt
+            echo "Hostname: $(hostname)" >> /data/test-file.txt
+            echo "---" >> /data/test-file.txt
+            sleep 30
+          done
+        volumeMounts:
+        - name: filestore-volume
+          mountPath: /data
+      volumes:
+      - name: filestore-volume
+        persistentVolumeClaim:
+          claimName: filestore-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: filestore-test-service
+  namespace: default
+spec:
+  selector:
+    app: filestore-test
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
